@@ -2,4 +2,4 @@
 
 dumb build system in python
 
-see [examples](examples)
+see [example](example)
