@@ -2,9 +2,9 @@
 
 dumb build system in python
 
-```
-$ git clone https://github.com/xTarzx/devox.git
-$ pip install devox
+```bash
+git clone https://github.com/xTarzx/devox.git
+pip install devox
 ```
 
 see [example](example)
