@@ -1,0 +1,13 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "devox"
+version = "0.1.0"
+authors = [
+    { name = "Telmo Martins", email = "telmomartins2000@gmail.com" },
+    { name = "Thatta" },
+]
+description = "build system"
+requires-python = ">=3.11"
