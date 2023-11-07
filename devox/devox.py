@@ -31,12 +31,14 @@ def log(level: LogLevel, msg: str):
 
 class Devox:
     def __init__(self, project_name: str, project_root: str):
-        self.project_name = project_name
         self.project_root = os.path.relpath(project_root)
+        self.build_dir = os.path.join(self.project_root, "devox_build")
+
+        self.project_name = project_name
+        self.exec_path = os.path.join(self.build_dir, self.project_name)
+
         self.src_dir = self.project_root
         self.inc_dir = self.project_root
-
-        self.build_dir = os.path.join(self.project_root, "devox_build")
 
         self.compiler = "g++"
 
@@ -77,12 +79,12 @@ class Devox:
                 log(LogLevel.ERROR, f"failed to compile {src}")
                 exit(1)
 
-        cmd = f"{self.compiler} -o {self.project_name} {' '.join(onames)} {self.__libs_str()}"
-        log(LogLevel.INFO, f"linking '{self.project_name}'")
+        cmd = f"{self.compiler} -o {self.exec_path} {' '.join(onames)} {self.__libs_str()}"
+        log(LogLevel.INFO, f"linking '{self.exec_path}'")
         log(LogLevel.CMD, cmd)
         res = subprocess.call(cmd.split())
         if res != 0:
-            log(LogLevel.ERROR, f"failed to link '{self.project_name}'")
+            log(LogLevel.ERROR, f"failed to link '{self.exec_path}'")
             exit(1)
 
         log(LogLevel.INFO, f"done")
