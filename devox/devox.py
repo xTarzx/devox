@@ -42,13 +42,19 @@ class Devox:
         self.srcs: list[str] = []
         self.libs: list[str] = []
 
+    def set_src_dir_rel(self, path: str):
+        self.src_dir = os.path.join(self.project_root, path)
+
+    def set_inc_dir_rel(self, path: str):
+        self.inc_dir = os.path.join(self.project_root, path)
+
     def add_src(self, *srcs):
         for filename in srcs:
             fp = os.path.join(self.src_dir, filename)
             if not os.path.exists(fp):
                 log(LogLevel.ERROR, f"'{filename}' not found")
                 exit(1)
-            self.srcs.append(filename)
+            self.srcs.append(fp)
 
     def __obj_name(self, path: str) -> str:
         return f"{Path(path).stem}.o"
@@ -62,7 +68,7 @@ class Devox:
 
     def __is_modified_after(self, path1: str, path2: str) -> bool:
         if not os.path.exists(path1) or not os.path.exists(path2):
-            return False
+            return True
 
         return os.path.getmtime(path1) > os.path.getmtime(path2)
 
@@ -72,7 +78,7 @@ class Devox:
             obj_path = os.path.join(self.build_dir, oname)
 
             if all or self.__is_modified_after(src, obj_path):
-                cmd = f"{self.compiler} -o {obj_path} -c {src}"
+                cmd = f"{self.compiler} -I{self.inc_dir} -o {obj_path} -c {src}"
 
                 log(LogLevel.INFO, f"compiling '{src}'")
                 log(LogLevel.INFO, f"CMD: {cmd}")
