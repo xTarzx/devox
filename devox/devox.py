@@ -37,6 +37,8 @@ class Devox:
         self.inc_dirs: list[str] = []
         self.link_dirs: list[str] = []
 
+        self.objs: list[str] = []
+
         self.compiler = "g++"
 
         self.srcs: list[str] = []
@@ -57,6 +59,14 @@ class Devox:
                 log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
             self.link_dirs.append(fp)
+
+    def add_obj_rel(self, *paths):
+        for path in paths:
+            fp = os.path.join(self.project_root, path)
+            if not os.path.exists(fp):
+                log(LogLevel.ERROR, f"'{fp}' not found")
+                exit(1)
+            self.objs.append(fp)
 
     def add_src(self, *srcs):
         for filename in srcs:
@@ -108,7 +118,7 @@ class Devox:
     def __link(self):
         onames = [os.path.join(self.build_dir, self.__obj_name(src))
                   for src in self.srcs]
-        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {self.__libs_str()}"
+        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.objs)} {self.__libs_str()}"
         log(LogLevel.INFO, f"linking '{self.exec_path}'")
         log(LogLevel.INFO, f"CMD: {cmd}")
         res = subprocess.call(cmd.split())
