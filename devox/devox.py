@@ -34,15 +34,29 @@ class Devox:
         self.project_name = project_name
         self.exec_path = os.path.join(self.build_dir, self.project_name)
 
-        self.inc_dir = self.project_root
+        self.inc_dirs: list[str] = []
+        self.link_dirs: list[str] = []
 
         self.compiler = "g++"
 
         self.srcs: list[str] = []
         self.libs: list[str] = []
 
-    def set_inc_dir_rel(self, path: str):
-        self.inc_dir = os.path.join(self.project_root, path)
+    def add_inc_dir_rel(self, *paths):
+        for path in paths:
+            fp = os.path.join(self.project_root, path)
+            if not os.path.exists(fp):
+                log(LogLevel.ERROR, f"'{fp}' not found")
+                exit(1)
+            self.inc_dirs.append(fp)
+
+    def add_link_dir_rel(self, *paths):
+        for path in paths:
+            fp = os.path.join(self.project_root, path)
+            if not os.path.exists(fp):
+                log(LogLevel.ERROR, f"'{fp}' not found")
+                exit(1)
+            self.link_dirs.append(fp)
 
     def add_src(self, *srcs):
         for filename in srcs:
@@ -62,6 +76,12 @@ class Devox:
     def __libs_str(self) -> str:
         return " ".join([f"-l{lib}" for lib in self.libs])
 
+    def __inc_dirs_str(self) -> str:
+        return " ".join([f"-I{path}" for path in self.inc_dirs])
+
+    def __link_dirs_str(self) -> str:
+        return " ".join([f"-L{path}" for path in self.link_dirs])
+
     def __is_modified_after(self, path1: str, path2: str) -> bool:
         if not os.path.exists(path1) or not os.path.exists(path2):
             return True
@@ -74,7 +94,7 @@ class Devox:
             obj_path = os.path.join(self.build_dir, oname)
 
             if all or self.__is_modified_after(src, obj_path):
-                cmd = f"{self.compiler} -I{self.inc_dir} -o {obj_path} -c {src}"
+                cmd = f"{self.compiler} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
 
                 log(LogLevel.INFO, f"compiling '{src}'")
                 log(LogLevel.INFO, f"CMD: {cmd}")
@@ -88,7 +108,7 @@ class Devox:
     def __link(self):
         onames = [os.path.join(self.build_dir, self.__obj_name(src))
                   for src in self.srcs]
-        cmd = f"{self.compiler} -o {self.exec_path} {' '.join(onames)} {self.__libs_str()}"
+        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {self.__libs_str()}"
         log(LogLevel.INFO, f"linking '{self.exec_path}'")
         log(LogLevel.INFO, f"CMD: {cmd}")
         res = subprocess.call(cmd.split())
