@@ -6,7 +6,6 @@ import subprocess
 
 class LogLevel(Enum):
     INFO = auto(),
-    CMD = auto(),
     WARNING = auto(),
     ERROR = auto()
 
@@ -15,8 +14,6 @@ def level_str(level: LogLevel):
     match level:
         case LogLevel.INFO:
             return "INFO"
-        case LogLevel.CMD:
-            return "CMD"
         case LogLevel.WARNING:
             return "WARNING"
         case LogLevel.ERROR:
@@ -26,7 +23,7 @@ def level_str(level: LogLevel):
 
 
 def log(level: LogLevel, msg: str):
-    print(f"[{level_str(level)}]: {msg}")
+    print(f"[{level_str(level)}] {msg}")
 
 
 class Devox:
@@ -73,7 +70,7 @@ class Devox:
             cmd = f"{self.compiler} -o {oname} -c {src}"
 
             log(LogLevel.INFO, f"compiling '{src}'")
-            log(LogLevel.CMD, cmd)
+            log(LogLevel.INFO, f"CMD: {cmd}")
             res = subprocess.call(cmd.split())
             if res != 0:
                 log(LogLevel.ERROR, f"failed to compile {src}")
@@ -81,7 +78,7 @@ class Devox:
 
         cmd = f"{self.compiler} -o {self.exec_path} {' '.join(onames)} {self.__libs_str()}"
         log(LogLevel.INFO, f"linking '{self.exec_path}'")
-        log(LogLevel.CMD, cmd)
+        log(LogLevel.INFO, f"CMD: {cmd}")
         res = subprocess.call(cmd.split())
         if res != 0:
             log(LogLevel.ERROR, f"failed to link '{self.exec_path}'")
