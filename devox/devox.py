@@ -66,12 +66,12 @@ class Devox:
 
         return os.path.getmtime(path1) > os.path.getmtime(path2)
 
-    def __compile(self):
+    def __compile(self, all: bool):
         for src in self.srcs:
             oname = self.__obj_name(src)
             obj_path = os.path.join(self.build_dir, oname)
 
-            if self.__is_modified_after(src, obj_path):
+            if all or self.__is_modified_after(src, obj_path):
                 cmd = f"{self.compiler} -o {obj_path} -c {src}"
 
                 log(LogLevel.INFO, f"compiling '{src}'")
@@ -99,8 +99,8 @@ class Devox:
             log(LogLevel.INFO, "creating build directory")
             os.mkdir(self.build_dir)
 
-    def build(self):
+    def build(self, all: bool = False):
         self.ensure_build_folder()
-        self.__compile()
+        self.__compile(all)
         self.__link()
         log(LogLevel.INFO, f"done")
