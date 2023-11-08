@@ -24,12 +24,14 @@ const int window_width = window_height;
 const Color block_color = GetColor(0x888888DD);
 const Color ghost_color = GetColor(0x88888822);
 
-struct Block {
+struct Block
+{
   Vector2 center;
 
   bool isnull = false;
 
-  Rectangle get_rect() {
+  Rectangle get_rect()
+  {
     Rectangle r;
 
     r.x = center.x - (float)grid_size_p / 2;
@@ -41,13 +43,16 @@ struct Block {
   }
 };
 
-struct Tetromino {
+struct Tetromino
+{
   Vector2 rot_point;
 
   std::vector<Block> blocks;
 
-  void rotate() {
-    for (auto &block : blocks) {
+  void rotate()
+  {
+    for (auto &block : blocks)
+    {
 
       // tranlate to origin
       Vector2 pos_trans = Vector2Subtract(block.center, rot_point);
@@ -58,17 +63,22 @@ struct Tetromino {
     }
   }
 
-  bool can_move_down(std::vector<Block> &other_blocks) {
+  bool can_move_down(std::vector<Block> &other_blocks)
+  {
 
-    for (auto &block : blocks) {
-      if (block.center.y + grid_size_p > window_height) {
+    for (auto &block : blocks)
+    {
+      if (block.center.y + grid_size_p > window_height)
+      {
         return false;
       }
 
-      for (auto &other_block : other_blocks) {
+      for (auto &other_block : other_blocks)
+      {
         Rectangle next_r = block.get_rect();
         next_r.y += grid_size_p;
-        if (CheckCollisionRecs(next_r, other_block.get_rect())) {
+        if (CheckCollisionRecs(next_r, other_block.get_rect()))
+        {
           return false;
         }
       }
@@ -77,13 +87,17 @@ struct Tetromino {
     return true;
   }
 
-  bool can_move_right(std::vector<Block> &other_blocks) {
+  bool can_move_right(std::vector<Block> &other_blocks)
+  {
 
-    for (auto &block : blocks) {
-      for (auto &other_block : other_blocks) {
+    for (auto &block : blocks)
+    {
+      for (auto &other_block : other_blocks)
+      {
         Rectangle next_r = block.get_rect();
         next_r.x += grid_size_p;
-        if (CheckCollisionRecs(next_r, other_block.get_rect())) {
+        if (CheckCollisionRecs(next_r, other_block.get_rect()))
+        {
           return false;
         }
       }
@@ -92,13 +106,17 @@ struct Tetromino {
     return true;
   }
 
-  bool can_move_left(std::vector<Block> &other_blocks) {
+  bool can_move_left(std::vector<Block> &other_blocks)
+  {
 
-    for (auto &block : blocks) {
-      for (auto &other_block : other_blocks) {
+    for (auto &block : blocks)
+    {
+      for (auto &other_block : other_blocks)
+      {
         Rectangle next_r = block.get_rect();
         next_r.x -= grid_size_p;
-        if (CheckCollisionRecs(next_r, other_block.get_rect())) {
+        if (CheckCollisionRecs(next_r, other_block.get_rect()))
+        {
           return false;
         }
       }
@@ -107,48 +125,59 @@ struct Tetromino {
     return true;
   }
 
-  void move_down() {
+  void move_down()
+  {
     rot_point.y += grid_size_p;
 
-    for (auto &block : blocks) {
+    for (auto &block : blocks)
+    {
       block.center.y += grid_size_p;
     }
   }
 
-  void move_up() {
+  void move_up()
+  {
     rot_point.y -= grid_size_p;
 
-    for (auto &block : blocks) {
+    for (auto &block : blocks)
+    {
       block.center.y -= grid_size_p;
     }
   }
 
-  void move_left() {
+  void move_left()
+  {
 
     rot_point.x -= grid_size_p;
 
-    for (auto &block : blocks) {
+    for (auto &block : blocks)
+    {
       block.center.x -= grid_size_p;
     }
   }
-  void move_right() {
+  void move_right()
+  {
 
     rot_point.x += grid_size_p;
 
-    for (auto &block : blocks) {
+    for (auto &block : blocks)
+    {
       block.center.x += grid_size_p;
     }
   }
 
-  void add_block_rel(int xc, int yc) {
+  void add_block_rel(int xc, int yc)
+  {
     Block b;
     b.center =
         Vector2{rot_point.x + grid_size_p * xc, rot_point.y + grid_size_p * yc};
     blocks.push_back(b);
   }
 
-  void draw_raylib(Vector2 offset, Color color) {
-    for (auto &block : blocks) {
+  void draw_raylib(Vector2 offset, Color color)
+  {
+    for (auto &block : blocks)
+    {
       Rectangle rect = block.get_rect();
       rect.x += offset.x;
       rect.y += offset.y;
@@ -158,7 +187,8 @@ struct Tetromino {
   }
 };
 
-void game_bound_check(Tetromino *t) {
+void game_bound_check(Tetromino *t)
+{
   if (t == NULL)
     return;
 
@@ -166,7 +196,8 @@ void game_bound_check(Tetromino *t) {
   int max_left = INT_MAX;
   int max_down = -1;
 
-  for (auto &block : t->blocks) {
+  for (auto &block : t->blocks)
+  {
     if (block.center.x > max_right)
       max_right = block.center.x;
     if (block.center.x < max_left)
@@ -178,38 +209,48 @@ void game_bound_check(Tetromino *t) {
   max_left -= grid_size_p / 2;
   max_down += grid_size_p / 2;
 
-  if (max_right > game_width) {
+  if (max_right > game_width)
+  {
     int diff = max_right - game_width;
-    for (int i = 0; i < diff / grid_size_p; ++i) {
+    for (int i = 0; i < diff / grid_size_p; ++i)
+    {
       t->move_left();
     }
   }
 
-  if (max_left < 0) {
+  if (max_left < 0)
+  {
     int diff = -1 * max_left;
-    for (int i = 0; i < diff / grid_size_p; ++i) {
+    for (int i = 0; i < diff / grid_size_p; ++i)
+    {
       t->move_right();
     }
   }
 
-  if (max_down > window_height) {
+  if (max_down > window_height)
+  {
     int diff = max_down - window_height;
-    for (int i = 0; i < diff / grid_size_p; ++i) {
+    for (int i = 0; i < diff / grid_size_p; ++i)
+    {
       t->move_up();
     }
   }
 }
 
-void draw_grid() {
-  for (int x = 0; x < game_width; x += grid_size_p) {
+void draw_grid()
+{
+  for (int x = 0; x < game_width; x += grid_size_p)
+  {
     DrawLine(x, 0, x, window_height, GetColor(0xEEEEEE1F));
   }
-  for (int y = 0; y < window_height; y += grid_size_p) {
+  for (int y = 0; y < window_height; y += grid_size_p)
+  {
     DrawLine(0, y, game_width, y, GetColor(0xEEEEEE1F));
   }
 }
 
-Tetromino gen_I_tetri() {
+Tetromino gen_I_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -221,7 +262,8 @@ Tetromino gen_I_tetri() {
   return t;
 }
 
-Tetromino gen_T_tetri() {
+Tetromino gen_T_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -232,7 +274,8 @@ Tetromino gen_T_tetri() {
   return t;
 }
 
-Tetromino gen_O_tetri() {
+Tetromino gen_O_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -246,7 +289,8 @@ Tetromino gen_O_tetri() {
   return t;
 }
 
-Tetromino gen_J_tetri() {
+Tetromino gen_J_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -259,7 +303,8 @@ Tetromino gen_J_tetri() {
   return t;
 }
 
-Tetromino gen_L_tetri() {
+Tetromino gen_L_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -272,7 +317,8 @@ Tetromino gen_L_tetri() {
   return t;
 }
 
-Tetromino gen_S_tetri() {
+Tetromino gen_S_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -283,7 +329,8 @@ Tetromino gen_S_tetri() {
   t.add_block_rel(-1, 0);
   return t;
 }
-Tetromino gen_Z_tetri() {
+Tetromino gen_Z_tetri()
+{
   Tetromino t;
   t.rot_point = Vector2{grid_size_p * 4 + ((float)grid_size_p / 2),
                         grid_size_p * -1 + ((float)grid_size_p / 2)};
@@ -295,10 +342,14 @@ Tetromino gen_Z_tetri() {
   return t;
 }
 
-bool colliding(Tetromino &t, std::vector<Block> &other_blocks) {
-  for (auto &block : t.blocks) {
-    for (auto &other_block : other_blocks) {
-      if (CheckCollisionRecs(block.get_rect(), other_block.get_rect())) {
+bool colliding(Tetromino &t, std::vector<Block> &other_blocks)
+{
+  for (auto &block : t.blocks)
+  {
+    for (auto &other_block : other_blocks)
+    {
+      if (CheckCollisionRecs(block.get_rect(), other_block.get_rect()))
+      {
         return true;
       }
     }
@@ -307,12 +358,15 @@ bool colliding(Tetromino &t, std::vector<Block> &other_blocks) {
   return false;
 }
 
-int check_line_completion(std::vector<Block> &blocks) {
+int check_line_completion(std::vector<Block> &blocks)
+{
   Block grid[grid_v_count][grid_h_count];
 
   // initialize grid with nulled blocks
-  for (int row = 0; row < grid_v_count; row++) {
-    for (int col = 0; col < grid_h_count; col++) {
+  for (int row = 0; row < grid_v_count; row++)
+  {
+    for (int col = 0; col < grid_h_count; col++)
+    {
       Block b;
       b.isnull = true;
       grid[row][col] = b;
@@ -320,7 +374,8 @@ int check_line_completion(std::vector<Block> &blocks) {
   }
 
   // convert block vector to correspondent grid position
-  for (auto block : blocks) {
+  for (auto block : blocks)
+  {
     Rectangle r = block.get_rect();
     int x = r.x / grid_size_p;
     int y = r.y / grid_size_p;
@@ -332,26 +387,33 @@ int check_line_completion(std::vector<Block> &blocks) {
 
   int completed_count = 0;
 
-  for (int row = 0; row < grid_v_count; ++row) {
+  for (int row = 0; row < grid_v_count; ++row)
+  {
     bool shoulderase = true;
-    for (int col = 0; col < grid_h_count; ++col) {
-      if (grid[row][col].isnull) {
+    for (int col = 0; col < grid_h_count; ++col)
+    {
+      if (grid[row][col].isnull)
+      {
         shoulderase = false;
         break;
       }
     }
 
-    if (shoulderase) {
+    if (shoulderase)
+    {
       completed_count += 1;
-      for (int j = row; j > 0; --j) {
-        for (int x = 0; x < grid_h_count; ++x) {
+      for (int j = row; j > 0; --j)
+      {
+        for (int x = 0; x < grid_h_count; ++x)
+        {
           Block b = grid[j - 1][x];
           b.center.y += grid_size_p;
           grid[j][x] = b;
         }
       }
 
-      for (int col = 0; col < grid_h_count; col++) {
+      for (int col = 0; col < grid_h_count; col++)
+      {
         Block b;
         b.isnull = true;
         grid[0][col] = b;
@@ -363,11 +425,14 @@ int check_line_completion(std::vector<Block> &blocks) {
 
   blocks.clear();
 
-  for (int row = 0; row < grid_v_count; ++row) {
-    for (int col = 0; col < grid_h_count; ++col) {
+  for (int row = 0; row < grid_v_count; ++row)
+  {
+    for (int col = 0; col < grid_h_count; ++col)
+    {
       Block b = grid[row][col];
 
-      if (!b.isnull) {
+      if (!b.isnull)
+      {
         blocks.push_back(b);
       }
     }
@@ -385,13 +450,15 @@ std::vector<t_func_p> shape_functions{gen_I_tetri, gen_T_tetri, gen_L_tetri,
                                       gen_J_tetri, gen_S_tetri, gen_Z_tetri,
                                       gen_O_tetri};
 
-t_func_p get_random_shape_func() {
+t_func_p get_random_shape_func()
+{
   int i = rand() % shape_functions.size();
 
   return shape_functions[i];
 }
 
-int main(void) {
+int main(void)
+{
 
   srand(time(0));
 
@@ -412,37 +479,47 @@ int main(void) {
   bool lost = false;
   bool should_exit = false;
 
-  while (!should_exit && !WindowShouldClose()) {
+  while (!should_exit && !WindowShouldClose())
+  {
     bool fast_fall = false;
 
-    if (!lost) {
+    if (!lost)
+    {
 
       float dt = GetFrameTime();
 
-      if (IsKeyPressed(KEY_SPACE)) {
+      if (IsKeyPressed(KEY_SPACE))
+      {
         t.rotate();
       }
 
-      if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
+      if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))
+      {
 
-        if (t.can_move_left(other_blocks)) {
+        if (t.can_move_left(other_blocks))
+        {
 
           t.move_left();
         }
       }
 
-      if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) {
-        if (t.can_move_right(other_blocks)) {
+      if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT))
+      {
+        if (t.can_move_right(other_blocks))
+        {
           t.move_right();
         }
       }
 
-      if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) {
+      if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN))
+      {
         fast_fall = true;
       }
 
-      if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
-        while (t.can_move_down(other_blocks)) {
+      if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))
+      {
+        while (t.can_move_down(other_blocks))
+        {
           t.move_down();
         }
         move_down_timer = -1;
@@ -450,31 +527,40 @@ int main(void) {
 
       move_down_timer -= dt;
 
-      if (fast_fall) {
+      if (fast_fall)
+      {
         move_down_timer -= 3 * dt;
       }
 
       game_bound_check(&t);
 
-      while (colliding(t, other_blocks)) {
+      while (colliding(t, other_blocks))
+      {
         t.move_up();
       }
 
-      if (move_down_timer < 0) {
+      if (move_down_timer < 0)
+      {
         move_down_timer = move_down_timer_r;
 
-        if (t.can_move_down(other_blocks)) {
+        if (t.can_move_down(other_blocks))
+        {
           t.move_down();
-        } else {
+        }
+        else
+        {
 
-          for (auto block : t.blocks) {
-            if (block.center.y < 0) {
+          for (auto block : t.blocks)
+          {
+            if (block.center.y < 0)
+            {
               lost = true;
             }
             other_blocks.push_back(block);
           }
 
-          if (!lost) {
+          if (!lost)
+          {
 
             t = next_t;
 
@@ -485,7 +571,9 @@ int main(void) {
           }
         }
       }
-    } else {
+    }
+    else
+    {
       // lost
     }
     BeginDrawing();
@@ -497,13 +585,15 @@ int main(void) {
 
     Tetromino ghost = t;
 
-    while (ghost.can_move_down(other_blocks)) {
+    while (ghost.can_move_down(other_blocks))
+    {
       ghost.move_down();
     }
 
     ghost.draw_raylib({0, 0}, ghost_color);
 
-    for (auto &block : other_blocks) {
+    for (auto &block : other_blocks)
+    {
       Rectangle rect = block.get_rect();
 
       DrawRectangleRec(rect, block_color);
@@ -518,7 +608,8 @@ int main(void) {
     DrawText(std::to_string(lines_deleted).c_str(), window_width - 64,
              grid_size_p, 32, block_color);
 
-    if (lost) {
+    if (lost)
+    {
 
       std::string msg_text = "lines deleted: ";
       msg_text += std::to_string(lines_deleted) + " ";
@@ -527,7 +618,8 @@ int main(void) {
           GuiMessageBox({(float)window_width / 2 - 100,
                          (float)window_height / 2 - 80, 100 * 2, 80 * 2},
                         "game end", msg_text.c_str(), "close");
-      if (result == 1) {
+      if (result == 1)
+      {
         should_exit = true;
       }
     }
