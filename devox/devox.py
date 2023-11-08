@@ -34,7 +34,6 @@ class Devox:
         self.project_name = project_name
         self.exec_path = os.path.join(self.build_dir, self.project_name)
 
-        self.src_dir = self.project_root
         self.inc_dir = self.project_root
 
         self.compiler = "g++"
@@ -42,17 +41,14 @@ class Devox:
         self.srcs: list[str] = []
         self.libs: list[str] = []
 
-    def set_src_dir_rel(self, path: str):
-        self.src_dir = os.path.join(self.project_root, path)
-
     def set_inc_dir_rel(self, path: str):
         self.inc_dir = os.path.join(self.project_root, path)
 
     def add_src(self, *srcs):
         for filename in srcs:
-            fp = os.path.join(self.src_dir, filename)
+            fp = os.path.join(self.project_root, filename)
             if not os.path.exists(fp):
-                log(LogLevel.ERROR, f"'{filename}' not found")
+                log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
             self.srcs.append(fp)
 
