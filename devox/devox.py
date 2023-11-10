@@ -1,4 +1,5 @@
 import os
+import sys
 from enum import Enum, auto
 from pathlib import Path
 import subprocess
@@ -33,22 +34,24 @@ def log(level: LogLevel, msg: str):
 
 
 class Devox:
-    def __init__(self, project_name: str, project_root: str):
+    def __init__(self, project_name: str, project_root: str = None):
+        if project_root is None:
+            project_root = os.path.dirname(sys.argv[0])
         self.project_root = os.path.relpath(project_root)
         self.build_dir = os.path.join(self.project_root, "devox_build")
 
         self.project_name = project_name
         self.exec_path = os.path.join(self.build_dir, self.project_name)
 
-        self.inc_dirs: list[str] = []
-        self.link_dirs: list[str] = []
+        self.__inc_dirs: list[str] = []
+        self.__link_dirs: list[str] = []
 
-        self.objs: list[str] = []
+        self.__objs: list[str] = []
 
         self.compiler = "g++"
 
-        self.srcs: list[str] = []
-        self.libs: list[str] = []
+        self.__srcs: list[str] = []
+        self.__libs: list[str] = []
 
     def add_inc_dir_rel(self, *paths):
         for path in paths:
@@ -56,7 +59,7 @@ class Devox:
             if not os.path.exists(fp):
                 log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
-            self.inc_dirs.append(fp)
+            self.__inc_dirs.append(fp)
 
     def add_link_dir_rel(self, *paths):
         for path in paths:
@@ -64,7 +67,7 @@ class Devox:
             if not os.path.exists(fp):
                 log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
-            self.link_dirs.append(fp)
+            self.__link_dirs.append(fp)
 
     def add_obj_rel(self, *paths):
         for path in paths:
@@ -72,7 +75,7 @@ class Devox:
             if not os.path.exists(fp):
                 log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
-            self.objs.append(fp)
+            self.__objs.append(fp)
 
     def add_src(self, *srcs):
         for filename in srcs:
@@ -80,30 +83,33 @@ class Devox:
             if not os.path.exists(fp):
                 log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
-            self.srcs.append(fp)
+            self.__srcs.append(fp)
 
     def __obj_name(self, path: str) -> str:
         return f"{Path(path).stem}.o"
 
     def link_lib(self, *libs):
         for lib in libs:
-            self.libs.append(lib)
+            self.__libs.append(lib)
 
     def __libs_str(self) -> str:
-        return " ".join([f"-l{lib}" for lib in self.libs])
+        return " ".join([f"-l{lib}" for lib in self.__libs])
 
     def __inc_dirs_str(self) -> str:
-        return " ".join([f"-I{path}" for path in self.inc_dirs])
+        return " ".join([f"-I{path}" for path in self.__inc_dirs])
 
     def __link_dirs_str(self) -> str:
-        return " ".join([f"-L{path}" for path in self.link_dirs])
+        return " ".join([f"-L{path}" for path in self.__link_dirs])
 
     @staticmethod
     def __is_modified_after(path1: str, path2: str) -> bool:
+        return os.path.getmtime(path1) > os.path.getmtime(path2)
+
+    def __should_compile(self, path1: str, path2: str) -> bool:
         if not os.path.exists(path1) or not os.path.exists(path2):
             return True
 
-        return os.path.getmtime(path1) > os.path.getmtime(path2)
+        return self.__is_modified_after(path1, path2)
 
     @staticmethod
     def __compile_worker(q: Queue, failed):
@@ -118,10 +124,10 @@ class Devox:
     def __compile_threaded(self, all: bool):
         q = Queue()
         failed = []
-        for src in self.srcs:
+        for src in self.__srcs:
             oname = self.__obj_name(src)
             obj_path = os.path.join(self.build_dir, oname)
-            if all or self.__is_modified_after(src, obj_path):
+            if all or self.__should_compile(src, obj_path):
                 cmd = f"{self.compiler} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
                 q.put((src, cmd))
             else:
@@ -144,11 +150,11 @@ class Devox:
             exit(1)
 
     def __compile(self, all: bool):
-        for src in self.srcs:
+        for src in self.__srcs:
             oname = self.__obj_name(src)
             obj_path = os.path.join(self.build_dir, oname)
 
-            if all or self.__is_modified_after(src, obj_path):
+            if all or self.__should_compile(src, obj_path):
                 cmd = f"{self.compiler} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
 
                 log(LogLevel.INFO, f"compiling '{src}'")
@@ -162,8 +168,8 @@ class Devox:
 
     def __link(self):
         onames = [os.path.join(self.build_dir, self.__obj_name(src))
-                  for src in self.srcs]
-        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.objs)} {self.__libs_str()}"
+                  for src in self.__srcs]
+        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.__objs)} {self.__libs_str()}"
         log(LogLevel.INFO, f"linking '{self.exec_path}'")
         log(LogLevel.INFO, f"CMD: {cmd}")
         res = subprocess.call(cmd.split())
