@@ -10,6 +10,8 @@ from time import time
 
 THREAD_COUNT = 4
 
+program = sys.argv[0]
+
 
 class LogLevel(Enum):
     INFO = auto(),
@@ -36,12 +38,14 @@ def log(level: LogLevel, msg: str):
 class Devox:
     def __init__(self, project_name: str, project_root: str = None):
         if project_root is None:
-            project_root = os.path.dirname(sys.argv[0])
+            project_root = os.path.dirname(program)
         self.project_root = os.path.relpath(project_root)
         self.build_dir = os.path.join(self.project_root, "devox_build")
 
         self.project_name = project_name
         self.exec_path = os.path.join(self.build_dir, self.project_name)
+
+        self.__cflags: list[str] = []
 
         self.__inc_dirs: list[str] = []
         self.__link_dirs: list[str] = []
@@ -84,6 +88,10 @@ class Devox:
                 log(LogLevel.ERROR, f"'{fp}' not found")
                 exit(1)
             self.__srcs.append(fp)
+
+    def add_cflag(self, *cflags):
+        for flag in cflags:
+            self.__cflags.append(flag)
 
     def __obj_name(self, path: str) -> str:
         return f"{Path(path).stem}.o"
@@ -128,7 +136,7 @@ class Devox:
             oname = self.__obj_name(src)
             obj_path = os.path.join(self.build_dir, oname)
             if all or self.__should_compile(src, obj_path):
-                cmd = f"{self.compiler} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
+                cmd = f"{self.compiler} {' '.join(self.__cflags)} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
                 q.put((src, cmd))
             else:
                 log(LogLevel.INFO, f"skipping '{src}'")
@@ -155,7 +163,7 @@ class Devox:
             obj_path = os.path.join(self.build_dir, oname)
 
             if all or self.__should_compile(src, obj_path):
-                cmd = f"{self.compiler} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
+                cmd = f"{self.compiler} {' '.join(self.__cflags)} {self.__inc_dirs_str()} -o {obj_path} -c {src}"
 
                 log(LogLevel.INFO, f"compiling '{src}'")
                 log(LogLevel.INFO, f"CMD: {cmd}")
