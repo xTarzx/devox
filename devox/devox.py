@@ -46,6 +46,7 @@ class Devox:
         self.exec_path = os.path.join(self.build_dir, self.project_name)
 
         self.__cflags: list[str] = []
+        self.__lflags: list[str] = []
 
         self.__inc_dirs: list[str] = []
         self.__link_dirs: list[str] = []
@@ -92,6 +93,10 @@ class Devox:
     def add_cflag(self, *cflags):
         for flag in cflags:
             self.__cflags.append(flag)
+    
+    def add_lflag(self, *lflags):
+        for flag in lflags:
+            self.__lflags.append(flag)
 
     def __obj_name(self, path: str) -> str:
         return f"{Path(path).stem}.o"
@@ -177,7 +182,7 @@ class Devox:
     def __link(self):
         onames = [os.path.join(self.build_dir, self.__obj_name(src))
                   for src in self.__srcs]
-        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.__objs)} {self.__libs_str()}"
+        cmd = f"{self.compiler} {' '.join(self.__lflags)} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.__objs)} {self.__libs_str()}"
         log(LogLevel.INFO, f"linking '{self.exec_path}'")
         log(LogLevel.INFO, f"CMD: {cmd}")
         res = subprocess.call(cmd.split())
