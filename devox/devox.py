@@ -182,7 +182,7 @@ class Devox:
     def __link(self):
         onames = [os.path.join(self.build_dir, self.__obj_name(src))
                   for src in self.__srcs]
-        cmd = f"{self.compiler} {' '.join(self.__lflags)} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.__objs)} {self.__libs_str()}"
+        cmd = f"{self.compiler} {self.__link_dirs_str()} -o {self.exec_path} {' '.join(onames)} {' '.join(self.__objs)} {self.__libs_str()} {' '.join(self.__lflags)}"
         log(LogLevel.INFO, f"linking '{self.exec_path}'")
         log(LogLevel.INFO, f"CMD: {cmd}")
         res = subprocess.call(cmd.split())
